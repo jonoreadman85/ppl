@@ -9,191 +9,229 @@
 <meta name="theme-color" content="#0d0d0f">
 <title>PPL Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&family=Fragment+Mono&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: #0d0d0f; color: #e8e6e0; font-family: 'DM Mono', monospace; overflow-x: hidden; }
+  html, body { height: 100%; background: #080809; color: #c8c6c0; font-family: 'Fragment Mono', monospace; overflow-x: hidden; }
   body { padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+  /* Dot grid background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none; z-index: 0;
+  }
+  #app, .header { position: relative; z-index: 1; }
 
   /* Header */
   .header {
-    background: #0d0d0f;
-    padding: 52px 20px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(8,8,9,0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 52px 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     position: sticky; top: 0; z-index: 100;
   }
-  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 3px; color: #fff; line-height: 1; }
-  .header-sub { font-size: 10px; color: #555; letter-spacing: 2px; margin-top: 4px; }
-
-  /* Phase tabs */
-  .phase-tabs { display: flex; gap: 8px; margin-top: 14px; }
-  .phase-tab {
-    flex: 1; padding: 10px 8px; border-radius: 3px; font-family: 'DM Mono', monospace;
-    font-size: 10px; letter-spacing: 1.5px; text-align: center; cursor: pointer;
-    border: 1px solid #2a2a2f; background: transparent; color: #666;
-    transition: all 0.15s ease;
+  .header-eyebrow { font-size: 9px; color: #e85d3a; letter-spacing: 4px; margin-bottom: 4px; }
+  .header-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 52px; font-weight: 700; letter-spacing: 1px;
+    color: #fff; line-height: 0.88; text-transform: uppercase;
   }
-  .phase-tab.active { background: #e8e6e0; color: #0d0d0f; border-color: #e8e6e0; font-weight: 500; }
+  .header-title em { font-style: italic; color: #e85d3a; }
+  .header-sub { font-size: 9px; color: #252528; letter-spacing: 3px; margin-top: 7px; }
+
+  /* Tabs — underline style */
+  .phase-tabs { display: flex; margin-top: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .phase-tab {
+    flex: 1; padding: 9px 6px 11px; font-family: 'Fragment Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; text-align: center; cursor: pointer;
+    border: none; background: transparent; color: #2e2e32;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    text-transform: uppercase;
+  }
+  .phase-tab.active { color: #e8e6e0; border-bottom-color: #e85d3a; }
 
   /* Phase note */
-  .phase-note { margin: 0 20px; padding: 12px 16px; background: rgba(255,255,255,0.02); border-left: 2px solid #333; font-size: 11px; color: #666; line-height: 1.7; }
+  .phase-note { margin: 14px 20px; padding: 10px 14px; border-left: 2px solid #1c1c20; font-size: 10px; color: #2e2e35; line-height: 1.8; }
 
   /* Day list */
-  .day-list { padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
-  .day-card {
-    border-radius: 4px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.07);
-    background: rgba(255,255,255,0.02);
-    transition: border-color 0.15s ease;
+  .day-list { padding: 8px 20px 12px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* Card entrance animation */
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .day-card.rest { opacity: 0.4; cursor: default; }
+  .day-card { animation: cardIn 0.28s ease both; }
+  .day-card:nth-child(1) { animation-delay: 0.04s; }
+  .day-card:nth-child(2) { animation-delay: 0.09s; }
+  .day-card:nth-child(3) { animation-delay: 0.14s; }
+  .day-card:nth-child(4) { animation-delay: 0.19s; }
+  .day-card:nth-child(5) { animation-delay: 0.24s; }
+  .day-card:nth-child(6) { animation-delay: 0.29s; }
+  .day-card:nth-child(7) { animation-delay: 0.34s; }
+
+  .day-card {
+    border-radius: 0;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    border-right: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-left: 3px solid transparent;
+    background: rgba(255,255,255,0.015);
+  }
+  .day-card.type-PUSH { border-left-color: #e85d3a; }
+  .day-card.type-PULL { border-left-color: #3a7be8; }
+  .day-card.type-LEGS { border-left-color: #3ab87a; }
+  .day-card.rest { opacity: 0.2; cursor: default; border-left-color: transparent; }
+  .day-card.active-session { border-top-color: rgba(232,230,224,0.15); border-right-color: rgba(232,230,224,0.15); border-bottom-color: rgba(232,230,224,0.15); }
+
   .day-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 18px; cursor: pointer;
+    padding: 14px 16px; cursor: pointer;
   }
   .day-header-left { display: flex; align-items: center; gap: 12px; }
-  .day-label { font-size: 10px; color: #555; letter-spacing: 2px; }
-  .day-type { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
-  .day-meta { font-size: 10px; color: #555; }
-  .day-chevron { font-size: 14px; color: #444; transition: transform 0.2s ease; }
+  .day-label { font-size: 8px; color: #2e2e35; letter-spacing: 3px; }
+  .day-type { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 1px; line-height: 1; margin-top: 2px; }
+  .day-meta { font-size: 9px; color: #2e2e35; margin-top: 3px; }
+  .day-chevron { font-size: 10px; color: #2e2e35; transition: transform 0.2s ease; flex-shrink: 0; }
   .day-card.open .day-chevron { transform: rotate(180deg); }
 
   /* Expanded session */
-  .day-body { display: none; border-top: 1px solid rgba(255,255,255,0.06); }
+  .day-body { display: none; border-top: 1px solid rgba(255,255,255,0.05); }
   .day-card.open .day-body { display: block; }
 
   /* Warm-up block */
   .warmup-header {
-    padding: 10px 18px 6px;
-    font-size: 9px; color: #e8a23a; letter-spacing: 2px;
-    background: rgba(232,162,58,0.04);
-    border-bottom: 1px solid rgba(232,162,58,0.1);
+    padding: 8px 16px 5px;
+    font-size: 8px; color: #b07a2a; letter-spacing: 3px;
+    background: rgba(232,162,58,0.03);
+    border-bottom: 1px solid rgba(232,162,58,0.07);
   }
   .warmup-item {
     display: flex; flex-direction: column; gap: 3px;
-    padding: 12px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    background: rgba(232,162,58,0.02);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    background: rgba(232,162,58,0.015);
   }
   .warmup-item:last-child { border-bottom: none; }
-  .warmup-name { font-size: 13px; color: #d0cec8; }
-  .warmup-duration { font-size: 11px; color: #e8a23a; }
-  .warmup-cue { font-size: 11px; color: #666; line-height: 1.6; margin-top: 2px; }
+  .warmup-name { font-size: 12px; color: #888; }
+  .warmup-duration { font-size: 10px; color: #b07a2a; }
+  .warmup-cue { font-size: 10px; color: #333; line-height: 1.6; margin-top: 2px; }
 
   /* Working sets */
   .sets-header {
     display: grid; grid-template-columns: 1fr 44px 72px;
-    padding: 10px 18px 6px;
-    font-size: 9px; color: #555; letter-spacing: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 16px 5px;
+    font-size: 8px; color: #252528; letter-spacing: 3px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.05);
   }
   .exercise-item {
     display: grid; grid-template-columns: 1fr 44px 72px;
-    padding: 14px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
     align-items: start; gap: 4px;
   }
   .exercise-item:last-child { border-bottom: none; }
-  .exercise-name { font-size: 13px; color: #e8e6e0; line-height: 1.4; }
-  .exercise-cue { font-size: 11px; color: #666; line-height: 1.6; grid-column: 1 / -1; margin-top: 4px; }
-  .exercise-sets { font-size: 14px; font-weight: 500; }
-  .exercise-reps { font-size: 12px; color: #999; }
+  .exercise-name { font-size: 12px; color: #aaa; line-height: 1.4; }
+  .exercise-cue { font-size: 10px; color: #2e2e35; line-height: 1.6; grid-column: 1 / -1; margin-top: 4px; }
+  .exercise-sets { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+  .exercise-reps { font-size: 10px; color: #3a3a40; padding-top: 4px; }
 
   /* Rest reminder */
   .rest-reminder {
-    padding: 8px 18px; font-size: 10px; color: #555; letter-spacing: 1px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    background: rgba(255,255,255,0.01);
+    padding: 7px 16px; font-size: 8px; color: #1e1e22; letter-spacing: 2px;
+    border-top: 1px solid rgba(255,255,255,0.03);
   }
-
 
   /* Install banner */
   .install-banner {
-    margin: 20px 20px 0;
-    background: rgba(58,123,232,0.07);
-    border: 1px solid rgba(58,123,232,0.2);
-    border-radius: 4px; padding: 12px 16px;
-    font-size: 11px; color: #7a9fd4; line-height: 1.7;
+    margin: 16px 20px 0;
+    background: rgba(58,123,232,0.05);
+    border: 1px solid rgba(58,123,232,0.15);
+    padding: 12px 14px;
+    font-size: 10px; color: #4a6fa0; line-height: 1.7;
     display: flex; gap: 10px; align-items: flex-start;
   }
   .install-banner-close { margin-left: auto; cursor: pointer; font-size: 14px; color: #3a7be8; flex-shrink: 0; }
 
   /* Session logging */
   .session-actions {
-    padding: 14px 18px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.05);
     display: flex; gap: 10px;
   }
   .btn-start {
-    flex: 1; padding: 13px; border-radius: 3px; font-family: 'DM Mono', monospace;
-    font-size: 11px; letter-spacing: 1.5px; cursor: pointer;
-    border: none; background: #e8e6e0; color: #0d0d0f; font-weight: 500;
-    transition: all 0.15s ease;
+    flex: 1; padding: 13px; font-family: 'Fragment Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.12); background: transparent; color: #888;
+    position: relative; overflow: hidden; transition: color 0.15s, border-color 0.15s;
   }
-  .btn-start:active { opacity: 0.8; }
+  .btn-start::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    animation: shimmer 2.4s linear infinite;
+  }
+  @keyframes shimmer { to { left: 100%; } }
+  .btn-start:active { color: #e8e6e0; border-color: rgba(255,255,255,0.3); }
+
   .btn-complete {
-    flex: 1; padding: 13px; border-radius: 3px; font-family: 'DM Mono', monospace;
-    font-size: 11px; letter-spacing: 1.5px; cursor: pointer;
-    border: none; background: #e8e6e0; color: #0d0d0f; font-weight: 500;
-    transition: all 0.15s ease;
+    flex: 1; padding: 13px; font-family: 'Fragment Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; cursor: pointer;
+    border: none; background: #e8e6e0; color: #080809; font-weight: 500;
+    transition: opacity 0.15s;
   }
   .btn-complete:active { opacity: 0.8; }
   .btn-cancel {
-    padding: 13px 16px; border-radius: 3px; font-family: 'DM Mono', monospace;
-    font-size: 11px; letter-spacing: 1px; cursor: pointer;
-    border: 1px solid #444; background: transparent; color: #888;
+    padding: 13px 14px; font-family: 'Fragment Mono', monospace;
+    font-size: 10px; letter-spacing: 1px; cursor: pointer;
+    border: 1px solid #1e1e22; background: transparent; color: #3a3a40;
   }
 
   /* Weight logging rows */
   .log-header {
     display: grid; grid-template-columns: 1fr 100px;
-    padding: 10px 18px 6px;
-    font-size: 9px; color: #555; letter-spacing: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    border-top: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.01);
+    padding: 8px 16px 5px;
+    font-size: 8px; color: #252528; letter-spacing: 3px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.05);
   }
   .log-item {
     display: grid; grid-template-columns: 1fr 100px;
-    padding: 12px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
     align-items: center; gap: 8px;
   }
   .log-item:last-child { border-bottom: none; }
-  .log-name { font-size: 13px; color: #e8e6e0; line-height: 1.4; }
-  .log-sets-reps { font-size: 10px; color: #555; margin-top: 2px; }
+  .log-name { font-size: 12px; color: #aaa; line-height: 1.4; }
+  .log-sets-reps { font-size: 9px; color: #2e2e35; margin-top: 2px; }
   .weight-select {
-    background: #1a1a1f; border: 1px solid #444; color: #e8e6e0;
-    font-family: 'DM Mono', monospace; font-size: 13px;
-    padding: 8px 28px 8px 10px; border-radius: 3px; width: 100%;
-    -webkit-appearance: none; appearance: none;
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
+    background: #0f0f11; border: 1px solid #2a2a2e; color: #c8c6c0;
+    font-family: 'Fragment Mono', monospace; font-size: 12px;
+    padding: 8px 28px 8px 10px; width: 100%;
+    -webkit-appearance: none; appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
   }
-  .weight-select:focus { outline: none; border-color: #777; }
-
-  /* Active session card highlight */
-  .day-card.active-session { border-color: rgba(232,230,224,0.25); }
+  .weight-select:focus { outline: none; border-color: #444; }
 
   /* Session complete banner */
   .session-complete-banner {
-    margin: 0 18px 14px;
-    padding: 12px 14px;
-    border-radius: 3px;
-    background: rgba(58,184,122,0.1);
-    border: 1px solid rgba(58,184,122,0.3);
-    font-size: 11px; color: #3ab87a; letter-spacing: 0.5px;
+    margin: 0 16px 12px; padding: 10px 12px;
+    background: rgba(58,184,122,0.07); border: 1px solid rgba(58,184,122,0.2);
+    font-size: 10px; color: #3ab87a; letter-spacing: 0.5px;
   }
 
   /* Success toast */
   .toast {
     position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-    background: #3ab87a; color: #0d0d0f; font-family: 'DM Mono', monospace;
-    font-size: 11px; font-weight: 500; letter-spacing: 1.5px;
-    padding: 13px 24px; border-radius: 3px; z-index: 200;
+    background: #3ab87a; color: #080809; font-family: 'Fragment Mono', monospace;
+    font-size: 10px; font-weight: 500; letter-spacing: 2px;
+    padding: 12px 22px; z-index: 200;
     opacity: 0; transition: opacity 0.2s ease;
     pointer-events: none; white-space: nowrap;
   }
@@ -201,49 +239,43 @@
 
   /* History tab */
   .history-wrap { padding: 20px; }
-  .history-title { font-size: 9px; color: #444; letter-spacing: 3px; margin-bottom: 16px; }
+  .history-title { font-size: 8px; color: #252528; letter-spacing: 4px; margin-bottom: 16px; text-transform: uppercase; }
 
   .calendar-strip { display: flex; flex-direction: column; gap: 2px; }
   .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
-  .cal-week-label { font-size: 9px; color: #444; letter-spacing: 1px; margin-bottom: 6px; margin-top: 12px; }
-  .cal-week-label:first-child { margin-top: 0; }
 
   .cal-day {
-    aspect-ratio: 1; border-radius: 3px; display: flex; flex-direction: column;
+    aspect-ratio: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 2px;
-    font-size: 9px; font-family: 'DM Mono', monospace;
-    position: relative;
+    font-size: 9px; font-family: 'Fragment Mono', monospace; position: relative;
   }
   .cal-day-num { font-size: 11px; line-height: 1; }
-  .cal-day-label { font-size: 8px; letter-spacing: 0.5px; opacity: 0.7; }
-  .cal-day.logged { background: rgba(58,184,122,0.15); border: 1px solid rgba(58,184,122,0.4); color: #3ab87a; }
-  .cal-day.missed { background: rgba(232,93,58,0.1); border: 1px solid rgba(232,93,58,0.3); color: #e85d3a; }
-  .cal-day.future { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: #333; }
+  .cal-day-label { font-size: 7px; letter-spacing: 0.5px; opacity: 0.7; }
+  .cal-day.logged { background: rgba(58,184,122,0.12); border: 1px solid rgba(58,184,122,0.35); color: #3ab87a; }
+  .cal-day.missed { background: rgba(232,93,58,0.08); border: 1px solid rgba(232,93,58,0.25); color: #e85d3a; }
+  .cal-day.future { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.04); color: #222; }
   .cal-day.today { border-width: 2px !important; }
-  .cal-day.today.future { border-color: #555 !important; color: #666; }
+  .cal-day.today.future { border-color: #333 !important; color: #444; }
 
   /* History session log */
   .session-log { margin-top: 24px; }
-  .session-log-title { font-size: 9px; color: #444; letter-spacing: 3px; margin-bottom: 12px; }
-  .session-entry {
-    border: 1px solid rgba(255,255,255,0.07); border-radius: 4px;
-    overflow: hidden; margin-bottom: 8px;
-  }
+  .session-log-title { font-size: 8px; color: #252528; letter-spacing: 4px; margin-bottom: 12px; text-transform: uppercase; }
+  .session-entry { border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-bottom: 6px; }
   .session-entry-header {
-    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
-    background: rgba(255,255,255,0.02);
+    padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.015);
   }
-  .session-entry-date { font-size: 11px; color: #e8e6e0; }
-  .session-entry-type { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; }
-  .session-entry-weights { padding: 10px 16px; }
+  .session-entry-date { font-size: 10px; color: #888; }
+  .session-entry-type { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .session-entry-weights { padding: 8px 14px; }
   .session-weight-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 11px;
+    padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 10px;
   }
   .session-weight-row:last-child { border-bottom: none; }
-  .session-weight-name { color: #888; }
-  .session-weight-val { color: #e8e6e0; font-weight: 500; }
+  .session-weight-name { color: #444; }
+  .session-weight-val { color: #888; }
 
   .spacer { height: 32px; }
 </style>
@@ -251,11 +283,12 @@
 <body>
 
 <div class="header">
-  <div class="header-title">PPL PROGRAMME</div>
-  <div class="header-sub">6-DAY SPLIT &nbsp;·&nbsp; PUSH · PULL · LEGS &nbsp;·&nbsp; DUMBBELL ONLY</div>
+  <div class="header-eyebrow">PROGRAMME / PHASE 1</div>
+  <div class="header-title">PPL<br><em>Training</em></div>
+  <div class="header-sub">6-DAY SPLIT &nbsp;·&nbsp; DUMBBELL ONLY</div>
   <div class="phase-tabs">
-    <button class="phase-tab active" onclick="setView('phase',0)" id="tab0">PHASE 1 &nbsp;·&nbsp; WKS 1–3</button>
-    <button class="phase-tab" onclick="setView('phase',1)" id="tab1">PHASE 2 &nbsp;·&nbsp; WK 4+</button>
+    <button class="phase-tab active" onclick="setView('phase',0)" id="tab0">PHASE 1</button>
+    <button class="phase-tab" onclick="setView('phase',1)" id="tab1">PHASE 2</button>
     <button class="phase-tab" onclick="setView('history')" id="tabH">HISTORY</button>
   </div>
 </div>
@@ -328,13 +361,13 @@ const phases = [
   },
   {
     label: "Phase 2", weeks: "Week 4+", duration: "45 min",
-    note: "Volume increase. Flat press introduced — assess shoulder first. Progressive overload formalised.",
+    note: "Volume increase. Flat press introduced — assess shoulder first. Overhead cautiously added. Progressive overload formalised.",
     days: [
       { day: "Day 1", type: "PUSH", exercises: [
         { name: "Incline Dumbbell Press", sets: "4", reps: "8–10", cue: "Primary mover. Heavier than Phase 1." },
         { name: "Flat Dumbbell Press", sets: "3", reps: "10–12", cue: "Introduce only if shoulder pain-free. Stop if discomfort." },
         { name: "Dumbbell Lateral Raise", sets: "3", reps: "12–15", cue: "Superset with triceps if time-pressed." },
-        { name: "Dumbbell Tricep Kickback", sets: "3", reps: "12–15", cue: "Upper arm parallel to floor. Full extension." },
+        { name: "Overhead Tricep Extension", sets: "3", reps: "12–15", cue: "Long head emphasis. Introduce cautiously, monitor shoulder." },
       ]},
       { day: "Day 2", type: "PULL", exercises: [
         { name: "Dumbbell Romanian Deadlift", sets: "4", reps: "8–10", cue: "Increase weight from Phase 1." },
@@ -461,6 +494,11 @@ function setView(view, phaseIdx) {
   document.getElementById('tab0').classList.toggle('active', view === 'phase' && currentPhase === 0);
   document.getElementById('tab1').classList.toggle('active', view === 'phase' && currentPhase === 1);
   document.getElementById('tabH').classList.toggle('active', view === 'history');
+  const eyebrow = document.querySelector('.header-eyebrow');
+  if (eyebrow) {
+    if (view === 'history') eyebrow.textContent = 'PROGRAMME / HISTORY';
+    else eyebrow.textContent = `PROGRAMME / PHASE ${currentPhase + 1}`;
+  }
   render();
 }
 
@@ -514,12 +552,12 @@ function renderPhase() {
     const isActive = activeSession && activeSession.phaseIndex === currentPhase && activeSession.dayIndex === i;
     const loggedToday = sessions.some(s => s.date === today && s.phase === currentPhase && s.dayIndex === i);
 
-    html += `<div class="day-card${isOpen ? ' open' : ''}${isRest ? ' rest' : ''}${isActive ? ' active-session' : ''}" id="card-${i}">`;
+    html += `<div class="day-card type-${day.type}${isOpen ? ' open' : ''}${isRest ? ' rest' : ''}${isActive ? ' active-session' : ''}" id="card-${i}">`;
 
     html += `<div class="day-header" ${!isRest ? `onclick="toggleDay(${i})"` : ''}>
       <div class="day-header-left">
         <div>
-          <div class="day-label">${day.day.toUpperCase()}</div>
+          <div class="day-label">${day.day.toUpperCase().replace(/(\d+)/, n => String(n).padStart(2,'0'))}</div>
           <div class="day-type" style="color:${color}">${day.type}</div>
         </div>
         ${!isRest ? `<div class="day-meta">${day.exercises.length} exercises · ${phase.duration}${loggedToday ? ' · <span style="color:#3ab87a">LOGGED</span>' : ''}</div>` : ''}
@@ -531,7 +569,7 @@ function renderPhase() {
       html += `<div class="day-body">`;
 
       if (wu) {
-        html += `<div class="warmup-header">WARM-UP · 5–7 MIN</div>`;
+        html += `<div class="warmup-header">— WARM-UP · 5–7 MIN</div>`;
         wu.forEach(w => {
           html += `<div class="warmup-item">
             <div class="warmup-name">${w.name}</div>
@@ -559,7 +597,7 @@ function renderPhase() {
             </select>
           </div>`;
         });
-        html += `<div class="rest-reminder">REST 60–90 SEC BETWEEN SETS</div>`;
+        html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
         html += `<div class="session-actions">
           <button class="btn-cancel" onclick="cancelSession()">CANCEL</button>
           <button class="btn-complete" onclick="completeSession()">COMPLETE SESSION</button>
@@ -579,7 +617,7 @@ function renderPhase() {
             ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
           </div>`;
         });
-        html += `<div class="rest-reminder">REST 60–90 SEC BETWEEN SETS</div>`;
+        html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
         html += `<div class="session-actions">
           <button class="btn-start" onclick="startSession(${currentPhase}, ${i})">START SESSION</button>
         </div>`;
