@@ -661,6 +661,46 @@ function updateWeight(exerciseName, val) {
   if (activeSession) activeSession.weights[exerciseName] = parseFloat(val);
 }
 
+function updateReps(exerciseName, setIndex, delta) {
+  if (!activeSession || !activeSession.reps[exerciseName]) return;
+  const current = activeSession.reps[exerciseName][setIndex];
+  activeSession.reps[exerciseName][setIndex] = Math.max(1, (current || 0) + delta);
+  const row = document.getElementById(`set-row-${exerciseName.replace(/[^a-z0-9]/gi, '_')}-${setIndex}`);
+  if (row) {
+    const counter = row.querySelector('.rep-count');
+    if (counter) counter.textContent = activeSession.reps[exerciseName][setIndex];
+  }
+}
+
+function completeSetRow(exerciseName, setIndex) {
+  if (!activeSession || !activeSession.reps[exerciseName]) return;
+  if (activeSession.reps[exerciseName][setIndex] === null) {
+    const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
+    const ex = day.exercises.find(e => e.name === exerciseName);
+    const { min } = ex ? parseRepRange(ex.reps) : { min: 10 };
+    activeSession.reps[exerciseName][setIndex] = min;
+  }
+  const safeKey = exerciseName.replace(/[^a-z0-9]/gi, '_');
+  const row = document.getElementById(`set-row-${safeKey}-${setIndex}`);
+  if (row) {
+    const reps = activeSession.reps[exerciseName][setIndex];
+    row.innerHTML = `<span class="set-done-label">SET ${setIndex + 1}</span><span class="set-done-reps">${reps} reps</span>`;
+    row.classList.add('set-row-done');
+    row.classList.remove('set-row');
+  }
+  const allDone = activeSession.reps[exerciseName].every(r => r !== null);
+  if (allDone) {
+    const safeKey2 = exerciseName.replace(/[^a-z0-9]/gi, '_');
+    const block = document.getElementById(`ex-block-${safeKey2}`);
+    if (block) {
+      const weight = activeSession.weights[exerciseName];
+      const repsArr = activeSession.reps[exerciseName];
+      block.innerHTML = `<div class="ex-collapsed">${weight}kg · ${repsArr.join(' / ')}</div>`;
+    }
+  }
+  startRestTimer(90);
+}
+
 function startRestTimer(seconds) {
   if (restInterval) clearInterval(restInterval);
   restDuration = seconds;
