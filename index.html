@@ -279,6 +279,57 @@
 
   .spacer { height: 32px; }
 
+/* Rest timer */
+.rest-timer-row {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 72px;
+}
+.rest-timer-btn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid #2a2a2e;
+  color: #555;
+  font-family: 'Fragment Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.rest-timer-btn:hover { color: #aaa; border-color: #444; }
+.rest-timer-btn:active { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
+.rest-timer-countdown {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: #e8e6e0;
+  letter-spacing: 2px;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+}
+.rest-timer-bar {
+  height: 2px;
+  background: #1e1e22;
+  margin-top: 6px;
+  width: 100%;
+}
+.rest-timer-fill {
+  height: 100%;
+  background: #e85d3a;
+  transition: width 0.5s linear;
+}
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.rest-timer-pulse { animation: timerPulse 0.3s ease 2; }
+
 /* Retro date picker */
 .session-date-row {
   display: flex;
@@ -476,6 +527,9 @@ let currentPhase = 0;
 let openDay = null;
 let activeSession = null; // { phaseIndex, dayIndex, weights: { exerciseName: kg } }
 let retroDate = null; // null = use today, otherwise 'YYYY-MM-DD'
+let restDuration = null; // null | 60 | 90
+let restStart = null;    // Date.now() when timer started
+let restInterval = null; // setInterval handle
 let installDismissed = false;
 
 // --- localStorage helpers ---
@@ -517,6 +571,7 @@ function startSession(phaseIndex, dayIndex) {
 }
 
 function cancelSession() {
+  cancelRestTimer();
   activeSession = null;
   retroDate = null;
   render();
@@ -532,6 +587,51 @@ function updateWeight(exerciseName, val) {
   if (activeSession) activeSession.weights[exerciseName] = parseFloat(val);
 }
 
+function startRestTimer(seconds) {
+  if (restInterval) clearInterval(restInterval);
+  restDuration = seconds;
+  restStart = Date.now();
+  restInterval = setInterval(updateRestDisplay, 500);
+  updateRestDisplay();
+}
+
+function cancelRestTimer() {
+  if (restInterval) clearInterval(restInterval);
+  restDuration = null;
+  restStart = null;
+  restInterval = null;
+  const el = document.getElementById('rest-timer-display');
+  if (el) el.innerHTML = restTimerPickerHTML();
+}
+
+function updateRestDisplay() {
+  const el = document.getElementById('rest-timer-display');
+  if (!el || !restStart) return;
+  const elapsed = Math.floor((Date.now() - restStart) / 1000);
+  const remaining = restDuration - elapsed;
+  if (remaining <= 0) {
+    el.innerHTML = `<div class="rest-timer-countdown rest-timer-pulse" style="cursor:default">0:00</div><div class="rest-timer-bar"><div class="rest-timer-fill" style="width:0%"></div></div>`;
+    clearInterval(restInterval);
+    restInterval = null;
+    setTimeout(() => cancelRestTimer(), 600);
+    return;
+  }
+  const mins = Math.floor(remaining / 60);
+  const secs = String(remaining % 60).padStart(2, '0');
+  const pct = Math.max(0, remaining / restDuration) * 100;
+  el.innerHTML = `
+    <div class="rest-timer-countdown" onclick="cancelRestTimer()">${mins}:${secs}</div>
+    <div class="rest-timer-bar"><div class="rest-timer-fill" style="width:${pct}%"></div></div>
+  `;
+}
+
+function restTimerPickerHTML() {
+  return `
+    <button class="rest-timer-btn" onclick="startRestTimer(60)">60S</button>
+    <button class="rest-timer-btn" onclick="startRestTimer(90)">90S</button>
+  `;
+}
+
 function completeSession() {
   if (!activeSession) return;
   const sessions = getSessions();
@@ -544,6 +644,7 @@ function completeSession() {
     weights: { ...activeSession.weights }
   });
   saveSessions(sessions);
+  cancelRestTimer();
   activeSession = null;
   retroDate = null;
   openDay = null;
@@ -668,7 +769,10 @@ function renderPhase() {
             </select>
           </div>`;
         });
-        html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
+        const timerInner = restDuration && restStart
+          ? `<div class="rest-timer-countdown" onclick="cancelRestTimer()">${(() => { const r = Math.max(0, restDuration - Math.floor((Date.now()-restStart)/1000)); return Math.floor(r/60)+':'+String(r%60).padStart(2,'0'); })()}</div><div class="rest-timer-bar"><div class="rest-timer-fill" style="width:${Math.max(0,(restDuration-Math.floor((Date.now()-restStart)/1000))/restDuration)*100}%"></div></div>`
+          : restTimerPickerHTML();
+        html += `<div class="rest-timer-row" id="rest-timer-display">${timerInner}</div>`;
         html += `<div class="session-date-row">
           <span class="session-date-label">SESSION DATE</span>
           <input type="date" class="session-date-input" id="sessionDateInput"
