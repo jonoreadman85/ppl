@@ -889,10 +889,41 @@ function completeSession() {
   });
   saveSessions(sessions);
   cancelRestTimer();
+
+  const recommendations = [];
+  day.exercises.forEach(ex => {
+    const rec = getOverloadRecommendation(ex.name, ex.reps);
+    if (rec) recommendations.push({ name: ex.name, rec });
+  });
+
   activeSession = null;
   retroDate = null;
   openDay = null;
   render();
+
+  if (recommendations.length > 0) {
+    let overlayHtml = `<div class="overload-overlay" id="overload-overlay">
+      <div class="overload-panel">
+        <div class="overload-title">SESSION COMPLETE — RECOMMENDATIONS</div>`;
+    recommendations.forEach(({ name, rec }) => {
+      overlayHtml += `<div class="overload-item">
+        <span class="overload-ex-name">${name}</span>
+        <span class="overload-label" style="color:${rec.color}">${rec.label}</span>
+      </div>`;
+    });
+    overlayHtml += `<button class="overload-dismiss" onclick="dismissOverload()">DISMISS</button>
+      </div></div>`;
+    document.body.insertAdjacentHTML('beforeend', overlayHtml);
+  } else {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+}
+
+function dismissOverload() {
+  const overlay = document.getElementById('overload-overlay');
+  if (overlay) overlay.remove();
   const toast = document.getElementById('toast');
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 2000);
