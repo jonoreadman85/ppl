@@ -278,6 +278,66 @@
   .session-weight-val { color: #888; }
 
   .spacer { height: 32px; }
+
+/* Retro date picker */
+.session-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 4px;
+  border-top: 1px solid #1e1e24;
+  margin-top: 8px;
+}
+.session-date-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #888;
+}
+.session-date-input {
+  background: #1a1a20;
+  border: 1px solid #2e2e38;
+  border-radius: 4px;
+  color: #e8e6e0;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 6px 8px;
+  -webkit-appearance: none;
+  color-scheme: dark;
+}
+.session-date-input:focus {
+  outline: none;
+  border-color: #444;
+}
+
+/* Retro workout selector */
+.retro-wrap { padding: 20px; }
+.retro-title { font-size: 8px; color: #555; letter-spacing: 4px; margin-bottom: 4px; text-transform: uppercase; }
+.retro-date { font-size: 18px; color: #e8e6e0; margin-bottom: 24px; }
+.retro-day-list { display: flex; flex-direction: column; gap: 10px; }
+.retro-day-btn {
+  background: #1a1a20;
+  border: 1px solid #2e2e38;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.retro-day-type { font-size: 18px; letter-spacing: 2px; }
+.retro-day-meta { font-size: 10px; color: #555; margin-top: 2px; }
+.retro-back {
+  background: none;
+  border: none;
+  color: #555;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 0;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -415,6 +475,7 @@ let currentView = 'phase'; // 'phase' | 'history'
 let currentPhase = 0;
 let openDay = null;
 let activeSession = null; // { phaseIndex, dayIndex, weights: { exerciseName: kg } }
+let retroDate = null; // null = use today, otherwise 'YYYY-MM-DD'
 let installDismissed = false;
 
 // --- localStorage helpers ---
@@ -457,6 +518,13 @@ function startSession(phaseIndex, dayIndex) {
 
 function cancelSession() {
   activeSession = null;
+  retroDate = null;
+  render();
+}
+
+function openRetroSelector(dateString) {
+  retroDate = dateString;
+  currentView = 'retro';
   render();
 }
 
@@ -469,7 +537,7 @@ function completeSession() {
   const sessions = getSessions();
   const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
   sessions.push({
-    date: todayStr(),
+    date: retroDate || todayStr(),
     phase: activeSession.phaseIndex,
     dayIndex: activeSession.dayIndex,
     type: day.type,
@@ -477,6 +545,7 @@ function completeSession() {
   });
   saveSessions(sessions);
   activeSession = null;
+  retroDate = null;
   openDay = null;
   render();
   const toast = document.getElementById('toast');
@@ -520,6 +589,8 @@ function isIOS() {
 function render() {
   if (currentView === 'history') {
     renderHistory();
+  } else if (currentView === 'retro') {
+    renderRetroSelector();
   } else {
     renderPhase();
   }
@@ -598,6 +669,13 @@ function renderPhase() {
           </div>`;
         });
         html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
+        html += `<div class="session-date-row">
+          <span class="session-date-label">SESSION DATE</span>
+          <input type="date" class="session-date-input" id="sessionDateInput"
+            value="${retroDate || todayStr()}"
+            max="${todayStr()}"
+            onchange="retroDate = this.value">
+        </div>`;
         html += `<div class="session-actions">
           <button class="btn-cancel" onclick="cancelSession()">CANCEL</button>
           <button class="btn-complete" onclick="completeSession()">COMPLETE SESSION</button>
@@ -688,9 +766,12 @@ function renderHistory() {
       const monthAbbr = cursor.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
       const showMonth = dayNum === 1 || (cursor.getTime() === start.getTime() && d === 0);
 
-      html += `<div class="${cls}">
+      const isPast = !isFuture && !isToday;
+      const tappable = isPast && !isLogged;
+      html += `<div class="${cls}" ${tappable ? `onclick="openRetroSelector('${ds}')" style="cursor:pointer"` : ''}>
         <div class="cal-day-num">${dayNum}</div>
         ${showMonth ? `<div class="cal-day-label">${monthAbbr}</div>` : ''}
+        ${tappable ? `<div style="font-size:7px;color:#3ab87a;margin-top:1px">+</div>` : ''}
       </div>`;
 
       cursor.setDate(cursor.getDate() + 1);
@@ -738,6 +819,55 @@ function renderHistory() {
   html += `</div>`;
 
   document.getElementById('app').innerHTML = html;
+}
+
+function closeRetroSelector() {
+  retroDate = null;
+  setView('history');
+}
+
+function renderRetroSelector() {
+  if (!retroDate) { setView('history'); return; }
+  const dateLabel = new Date(retroDate + 'T00:00:00').toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }).toUpperCase();
+
+  let html = `<div class="retro-wrap">`;
+  html += `<button class="retro-back" onclick="closeRetroSelector()">← BACK TO HISTORY</button>`;
+  html += `<div class="retro-title">LOG PAST SESSION</div>`;
+  html += `<div class="retro-date">${dateLabel}</div>`;
+  html += `<div class="retro-day-list">`;
+
+  phases.forEach((phase, phaseIdx) => {
+    phase.days.forEach((day, dayIdx) => {
+      if (day.type === 'REST') return;
+      const color = typeColors[day.type] || '#888';
+      html += `<button class="retro-day-btn" onclick="startRetroSession(${phaseIdx}, ${dayIdx})">
+        <div>
+          <div class="retro-day-type" style="color:${color}">${day.type}</div>
+          <div class="retro-day-meta">${day.day} · Phase ${phaseIdx + 1} · ${day.exercises.length} exercises</div>
+        </div>
+        <span style="color:#333">▶</span>
+      </button>`;
+    });
+  });
+
+  html += `</div><div class="spacer"></div></div>`;
+  document.getElementById('app').innerHTML = html;
+}
+
+function startRetroSession(phaseIndex, dayIndex) {
+  const day = phases[phaseIndex].days[dayIndex];
+  const weights = {};
+  day.exercises.forEach(ex => {
+    const last = getLastWeight(ex.name);
+    weights[ex.name] = last !== null ? last : 5;
+  });
+  activeSession = { phaseIndex, dayIndex, weights };
+  currentPhase = phaseIndex;
+  openDay = dayIndex;
+  currentView = 'phase';
+  render();
 }
 
 render();
