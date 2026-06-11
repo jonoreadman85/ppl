@@ -770,7 +770,7 @@ function startSession(phaseIndex, dayIndex) {
   day.exercises.forEach(ex => {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
-    reps[ex.name] = Array(ex.sets).fill(null);
+    reps[ex.name] = Array(parseInt(ex.sets)).fill(null);
   });
   activeSession = { phaseIndex, dayIndex, weights, reps };
   render();
