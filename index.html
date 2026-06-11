@@ -796,7 +796,11 @@ function updateWeight(exerciseName, val) {
 function updateReps(exerciseName, setIndex, delta) {
   if (!activeSession || !activeSession.reps[exerciseName]) return;
   const current = activeSession.reps[exerciseName][setIndex];
-  activeSession.reps[exerciseName][setIndex] = Math.max(1, (current || 0) + delta);
+  const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
+  const ex = day.exercises.find(e => e.name === exerciseName);
+  const { min } = ex ? parseRepRange(ex.reps) : { min: 10 };
+  const base = current !== null ? current : min;
+  activeSession.reps[exerciseName][setIndex] = Math.max(1, base + delta);
   const row = document.getElementById(`set-row-${exerciseName.replace(/[^a-z0-9]/gi, '_')}-${setIndex}`);
   if (row) {
     const counter = row.querySelector('.rep-count');
@@ -806,12 +810,11 @@ function updateReps(exerciseName, setIndex, delta) {
 
 function completeSetRow(exerciseName, setIndex) {
   if (!activeSession || !activeSession.reps[exerciseName]) return;
-  if (activeSession.reps[exerciseName][setIndex] === null) {
-    const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
-    const ex = day.exercises.find(e => e.name === exerciseName);
-    const { min } = ex ? parseRepRange(ex.reps) : { min: 10 };
-    activeSession.reps[exerciseName][setIndex] = min;
-  }
+  if (activeSession.reps[exerciseName][setIndex] !== null) return;
+  const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
+  const ex = day.exercises.find(e => e.name === exerciseName);
+  const { min } = ex ? parseRepRange(ex.reps) : { min: 10 };
+  activeSession.reps[exerciseName][setIndex] = min;
   const safeKey = exerciseName.replace(/[^a-z0-9]/gi, '_');
   const row = document.getElementById(`set-row-${safeKey}-${setIndex}`);
   if (row) {
