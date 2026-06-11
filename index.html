@@ -1008,10 +1008,22 @@ function renderPhase() {
         if (loggedToday) {
           html += `<div class="session-complete-banner">Session already logged today.</div>`;
         }
-        html += `<div class="log-header"><span>EXERCISE</span><span style="text-align:right">WEIGHT (KG)</span></div>`;
         day.exercises.forEach(ex => {
+          const safeKey = ex.name.replace(/[^a-z0-9]/gi, '_');
           const selected = activeSession.weights[ex.name] || 5;
-          html += `<div class="log-item">
+          const exReps = activeSession.reps[ex.name] || [];
+          const { min } = parseRepRange(ex.reps);
+          const allDone = exReps.every(r => r !== null);
+
+          if (allDone) {
+            html += `<div class="ex-block" id="ex-block-${safeKey}">
+              <div class="ex-collapsed">${selected}kg · ${exReps.join(' / ')}</div>
+            </div>`;
+            return;
+          }
+
+          html += `<div class="ex-block" id="ex-block-${safeKey}">`;
+          html += `<div class="log-item" style="margin-bottom:6px">
             <div>
               <div class="log-name">${ex.name}</div>
               <div class="log-sets-reps">${ex.sets} sets · ${ex.reps}</div>
@@ -1020,6 +1032,28 @@ function renderPhase() {
               ${WEIGHTS.map(w => `<option value="${w}" ${w === selected ? 'selected' : ''}>${w}kg</option>`).join('')}
             </select>
           </div>`;
+
+          exReps.forEach((repVal, setIdx) => {
+            if (repVal !== null) {
+              html += `<div class="set-row set-row-done" id="set-row-${safeKey}-${setIdx}">
+                <span class="set-done-label">SET ${setIdx + 1}</span>
+                <span class="set-done-reps">${repVal} reps</span>
+              </div>`;
+            } else {
+              const displayReps = min;
+              html += `<div class="set-row" id="set-row-${safeKey}-${setIdx}">
+                <span class="set-label">SET ${setIdx + 1}</span>
+                <div class="rep-controls">
+                  <button class="rep-btn" onclick="updateReps('${ex.name.replace(/'/g,"\\'")}', ${setIdx}, -1)">−</button>
+                  <span class="rep-count">${displayReps}</span>
+                  <button class="rep-btn" onclick="updateReps('${ex.name.replace(/'/g,"\\'")}', ${setIdx}, 1)">+</button>
+                </div>
+                <button class="rep-done-btn" onclick="completeSetRow('${ex.name.replace(/'/g,"\\'")}', ${setIdx})">DONE</button>
+              </div>`;
+            }
+          });
+
+          html += `</div>`; // ex-block
         });
         const timerInner = restDuration && restStart
           ? `<div class="rest-timer-countdown" onclick="cancelRestTimer()">${(() => { const r = Math.max(0, restDuration - Math.floor((Date.now()-restStart)/1000)); return Math.floor(r/60)+':'+String(r%60).padStart(2,'0'); })()}</div><div class="rest-timer-bar"><div class="rest-timer-fill" style="width:${Math.max(0,(restDuration-Math.floor((Date.now()-restStart)/1000))/restDuration)*100}%"></div></div>`
