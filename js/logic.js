@@ -73,6 +73,18 @@ function initSessionReps(exercises) {
   return { reps, completedSets };
 }
 
+// Returns the index of the exercise after which the rest timer should be rendered.
+// That's the last exercise that has at least one completed set.
+// Returns -1 if no sets have been completed yet (timer goes at the end as fallback).
+function findTimerExerciseIndex(exercises, completedSets) {
+  let lastIdx = -1;
+  exercises.forEach((ex, i) => {
+    const done = completedSets[ex.name] || [];
+    if (done.some(Boolean)) lastIdx = i;
+  });
+  return lastIdx;
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps };
+  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex };
 }

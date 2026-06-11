@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps } = require('../js/logic.js');
+const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex } = require('../js/logic.js');
 
 // ---------------------------------------------------------------------------
 // parseRepRange
@@ -199,4 +199,39 @@ test('calcStreak: breaks on second gap in same 7-day window', () => {
 test('calcStreak: 0 for sessions more than 2 days ago with no recent activity', () => {
   const { set, today } = dateSet(5, 6, 7);
   assert.equal(calcStreak(set, today), 0);
+});
+
+// ---------------------------------------------------------------------------
+// findTimerExerciseIndex
+// ---------------------------------------------------------------------------
+
+const exercises = [
+  { name: 'Press', sets: '3', reps: '10–12' },
+  { name: 'Row', sets: '3', reps: '10–12' },
+  { name: 'Curl', sets: '3', reps: '12–15' },
+];
+
+test('findTimerExerciseIndex: -1 when no sets completed', () => {
+  const completedSets = { Press: [false, false, false], Row: [false, false, false], Curl: [false, false, false] };
+  assert.equal(findTimerExerciseIndex(exercises, completedSets), -1);
+});
+
+test('findTimerExerciseIndex: 0 when only first exercise has completed sets', () => {
+  const completedSets = { Press: [true, false, false], Row: [false, false, false], Curl: [false, false, false] };
+  assert.equal(findTimerExerciseIndex(exercises, completedSets), 0);
+});
+
+test('findTimerExerciseIndex: follows last exercise with any done set', () => {
+  const completedSets = { Press: [true, true, true], Row: [true, false, false], Curl: [false, false, false] };
+  assert.equal(findTimerExerciseIndex(exercises, completedSets), 1);
+});
+
+test('findTimerExerciseIndex: moves to third exercise once second is started', () => {
+  const completedSets = { Press: [true, true, true], Row: [true, true, true], Curl: [true, false, false] };
+  assert.equal(findTimerExerciseIndex(exercises, completedSets), 2);
+});
+
+test('findTimerExerciseIndex: last exercise index when all exercises fully done', () => {
+  const completedSets = { Press: [true, true, true], Row: [true, true, true], Curl: [true, true, true] };
+  assert.equal(findTimerExerciseIndex(exercises, completedSets), 2);
 });
