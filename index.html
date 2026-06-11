@@ -634,11 +634,13 @@ function calcStreak() {
 function startSession(phaseIndex, dayIndex) {
   const day = phases[phaseIndex].days[dayIndex];
   const weights = {};
+  const reps = {};
   day.exercises.forEach(ex => {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
+    reps[ex.name] = Array(ex.sets).fill(null);
   });
-  activeSession = { phaseIndex, dayIndex, weights };
+  activeSession = { phaseIndex, dayIndex, weights, reps };
   render();
 }
 
@@ -710,7 +712,8 @@ function completeSession() {
     phase: activeSession.phaseIndex,
     dayIndex: activeSession.dayIndex,
     type: day.type,
-    weights: { ...activeSession.weights }
+    weights: { ...activeSession.weights },
+    reps: activeSession.reps ? { ...activeSession.reps } : {}
   });
   saveSessions(sessions);
   cancelRestTimer();
@@ -1044,7 +1047,9 @@ function startRetroSession(phaseIndex, dayIndex) {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
   });
-  activeSession = { phaseIndex, dayIndex, weights };
+  const reps = {};
+  day.exercises.forEach(ex => { reps[ex.name] = Array(ex.sets).fill(null); });
+  activeSession = { phaseIndex, dayIndex, weights, reps };
   currentPhase = phaseIndex;
   openDay = dayIndex;
   currentView = 'phase';
