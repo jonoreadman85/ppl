@@ -765,6 +765,9 @@ function completeSetRow(exerciseName, setIndex) {
       block.innerHTML = `<div class="ex-collapsed">${weight}kg · ${repsArr.join(' / ')}</div>`;
     }
   }
+  const timerEl = document.getElementById('rest-timer-display');
+  const block = document.getElementById(`ex-block-${safeKey}`);
+  if (timerEl && block) block.after(timerEl);
   startRestTimer(90);
 }
 
