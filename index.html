@@ -397,6 +397,7 @@
   <div class="header-eyebrow">PROGRAMME / PHASE 1</div>
   <div class="header-title">PPL<br><em>Training</em></div>
   <div class="header-sub">6-DAY SPLIT &nbsp;·&nbsp; DUMBBELL ONLY</div>
+  <div id="header-streak" style="font-size:9px;letter-spacing:3px;color:#e85d3a;margin-top:4px;margin-bottom:2px;min-height:14px"></div>
   <div class="phase-tabs">
     <button class="phase-tab active" onclick="setView('phase',0)" id="tab0">PHASE 1</button>
     <button class="phase-tab" onclick="setView('phase',1)" id="tab1">PHASE 2</button>
@@ -547,6 +548,13 @@ function getLastWeight(exerciseName) {
   }
   return null;
 }
+function getStaleWeight(exerciseName) {
+  const sessions = getSessions().filter(s => s.weights[exerciseName] !== undefined);
+  if (sessions.length < 6) return false;
+  const last6 = sessions.slice(-6);
+  const w = last6[0].weights[exerciseName];
+  return last6.every(s => s.weights[exerciseName] === w);
+}
 function todayStr() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -556,6 +564,50 @@ function dateStr(d) {
 }
 function loggedDates() {
   return new Set(getSessions().map(s => s.date));
+}
+
+function calcStreak() {
+  const logged = loggedDates();
+  if (logged.size === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Start from today if logged, otherwise yesterday
+  const startCursor = new Date(today);
+  if (!logged.has(dateStr(today))) {
+    startCursor.setDate(startCursor.getDate() - 1);
+  }
+
+  let streak = 0;
+  let weekGaps = 0;
+  let weekDays = 0;
+
+  const cursor = new Date(startCursor);
+
+  while (true) {
+    const ds = dateStr(cursor);
+
+    if (logged.has(ds)) {
+      streak++;
+    } else {
+      weekGaps++;
+      if (weekGaps > 1) break;
+    }
+
+    weekDays++;
+    if (weekDays === 7) {
+      weekGaps = 0;
+      weekDays = 0;
+    }
+
+    cursor.setDate(cursor.getDate() - 1);
+
+    const daysBack = Math.round((startCursor - cursor) / 86400000);
+    if (daysBack > 365) break;
+  }
+
+  return streak;
 }
 
 // --- Session actions ---
@@ -695,6 +747,14 @@ function render() {
   } else {
     renderPhase();
   }
+  renderStreakInHeader();
+}
+
+function renderStreakInHeader() {
+  const el = document.getElementById('header-streak');
+  if (!el) return;
+  const streak = calcStreak();
+  el.textContent = streak >= 2 ? `— ${streak} DAY STREAK —` : '';
 }
 
 function renderPhase() {
@@ -797,6 +857,7 @@ function renderPhase() {
             <div class="exercise-reps">${ex.reps}</div>
             ${ex.cue ? `<div class="exercise-cue">${ex.cue}</div>` : ''}
             ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
+            ${getStaleWeight(ex.name) ? `<div class="exercise-cue" style="color:#b07a2a;margin-top:2px">↑ CONSIDER PROGRESSING</div>` : ''}
           </div>`;
         });
         html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
