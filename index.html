@@ -767,12 +767,14 @@ function startSession(phaseIndex, dayIndex) {
   const day = phases[phaseIndex].days[dayIndex];
   const weights = {};
   const reps = {};
+  const completedSets = {};
   day.exercises.forEach(ex => {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
     reps[ex.name] = Array(parseInt(ex.sets)).fill(null);
+    completedSets[ex.name] = Array(parseInt(ex.sets)).fill(false);
   });
-  activeSession = { phaseIndex, dayIndex, weights, reps };
+  activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
   render();
 }
 
@@ -809,24 +811,26 @@ function updateReps(exerciseName, setIndex, delta) {
 }
 
 function completeSetRow(exerciseName, setIndex) {
-  if (!activeSession || !activeSession.reps[exerciseName]) return;
-  if (activeSession.reps[exerciseName][setIndex] !== null) return;
+  if (!activeSession || !activeSession.completedSets[exerciseName]) return;
+  if (activeSession.completedSets[exerciseName][setIndex]) return;
   const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
   const ex = day.exercises.find(e => e.name === exerciseName);
   const { min } = ex ? parseRepRange(ex.reps) : { min: 10 };
-  activeSession.reps[exerciseName][setIndex] = min;
+  const repCount = activeSession.reps[exerciseName][setIndex] !== null
+    ? activeSession.reps[exerciseName][setIndex]
+    : min;
+  activeSession.reps[exerciseName][setIndex] = repCount;
+  activeSession.completedSets[exerciseName][setIndex] = true;
   const safeKey = exerciseName.replace(/[^a-z0-9]/gi, '_');
   const row = document.getElementById(`set-row-${safeKey}-${setIndex}`);
   if (row) {
-    const reps = activeSession.reps[exerciseName][setIndex];
-    row.innerHTML = `<span class="set-done-label">SET ${setIndex + 1}</span><span class="set-done-reps">${reps} reps</span>`;
+    row.innerHTML = `<span class="set-done-label">SET ${setIndex + 1}</span><span class="set-done-reps">${repCount} reps</span>`;
     row.classList.add('set-row-done');
     row.classList.remove('set-row');
   }
-  const allDone = activeSession.reps[exerciseName].every(r => r !== null);
+  const allDone = activeSession.completedSets[exerciseName].every(Boolean);
   if (allDone) {
-    const safeKey2 = exerciseName.replace(/[^a-z0-9]/gi, '_');
-    const block = document.getElementById(`ex-block-${safeKey2}`);
+    const block = document.getElementById(`ex-block-${safeKey}`);
     if (block) {
       const weight = activeSession.weights[exerciseName];
       const repsArr = activeSession.reps[exerciseName];
@@ -1046,8 +1050,9 @@ function renderPhase() {
           const safeKey = ex.name.replace(/[^a-z0-9]/gi, '_');
           const selected = activeSession.weights[ex.name] || 5;
           const exReps = activeSession.reps[ex.name] || [];
+          const exDone = activeSession.completedSets[ex.name] || [];
           const { min } = parseRepRange(ex.reps);
-          const allDone = exReps.every(r => r !== null);
+          const allDone = exDone.every(Boolean);
 
           if (allDone) {
             html += `<div class="ex-block" id="ex-block-${safeKey}">
@@ -1068,13 +1073,13 @@ function renderPhase() {
           </div>`;
 
           exReps.forEach((repVal, setIdx) => {
-            if (repVal !== null) {
+            if (exDone[setIdx]) {
               html += `<div class="set-row set-row-done" id="set-row-${safeKey}-${setIdx}">
                 <span class="set-done-label">SET ${setIdx + 1}</span>
                 <span class="set-done-reps">${repVal} reps</span>
               </div>`;
             } else {
-              const displayReps = min;
+              const displayReps = repVal !== null ? repVal : min;
               html += `<div class="set-row" id="set-row-${safeKey}-${setIdx}">
                 <span class="set-label">SET ${setIdx + 1}</span>
                 <div class="rep-controls">
@@ -1290,8 +1295,12 @@ function startRetroSession(phaseIndex, dayIndex) {
     weights[ex.name] = last !== null ? last : 5;
   });
   const reps = {};
-  day.exercises.forEach(ex => { reps[ex.name] = Array(ex.sets).fill(null); });
-  activeSession = { phaseIndex, dayIndex, weights, reps };
+  const completedSets = {};
+  day.exercises.forEach(ex => {
+    reps[ex.name] = Array(parseInt(ex.sets)).fill(null);
+    completedSets[ex.name] = Array(parseInt(ex.sets)).fill(false);
+  });
+  activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
   currentPhase = phaseIndex;
   openDay = dayIndex;
   currentView = 'phase';
