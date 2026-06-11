@@ -548,12 +548,32 @@ function getLastWeight(exerciseName) {
   }
   return null;
 }
-function getStaleWeight(exerciseName) {
-  const sessions = getSessions().filter(s => s.weights[exerciseName] !== undefined);
-  if (sessions.length < 6) return false;
-  const last6 = sessions.slice(-6);
-  const w = last6[0].weights[exerciseName];
-  return last6.every(s => s.weights[exerciseName] === w);
+function parseRepRange(repsStr) {
+  const enDash = repsStr.match(/(\d+)[–\-](\d+)/);
+  if (enDash) return { min: parseInt(enDash[1]), max: parseInt(enDash[2]) };
+  const num = repsStr.match(/^(\d+)/);
+  const n = num ? parseInt(num[1]) : 10;
+  return { min: n, max: n };
+}
+
+function getOverloadRecommendation(exerciseName, repsStr) {
+  const { min, max } = parseRepRange(repsStr);
+  const sessions = getSessions().filter(s => s.reps && s.reps[exerciseName]);
+  if (sessions.length === 0) return null;
+
+  const last = sessions[sessions.length - 1].reps[exerciseName];
+  const belowMin = last.filter(r => r !== null && r < min).length;
+  if (belowMin >= 2) return { action: 'hold', label: 'HOLD — FOCUS ON FORM', color: '#3a7be8' };
+
+  const allAtMax = sets => sets.every(r => r !== null && r >= max);
+  if (allAtMax(last)) {
+    if (sessions.length >= 2 && allAtMax(sessions[sessions.length - 2].reps[exerciseName])) {
+      return { action: 'increase', label: '↑ ADD 2.5KG', color: '#3ab87a' };
+    }
+    return { action: 'increase', label: '↑ CONSIDER +2.5KG', color: '#b07a2a' };
+  }
+
+  return null;
 }
 function todayStr() {
   const d = new Date();
@@ -678,10 +698,7 @@ function updateRestDisplay() {
 }
 
 function restTimerPickerHTML() {
-  return `
-    <button class="rest-timer-btn" onclick="startRestTimer(60)">60S</button>
-    <button class="rest-timer-btn" onclick="startRestTimer(90)">90S</button>
-  `;
+  return '';
 }
 
 function completeSession() {
@@ -857,7 +874,6 @@ function renderPhase() {
             <div class="exercise-reps">${ex.reps}</div>
             ${ex.cue ? `<div class="exercise-cue">${ex.cue}</div>` : ''}
             ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
-            ${getStaleWeight(ex.name) ? `<div class="exercise-cue" style="color:#b07a2a;margin-top:2px">↑ CONSIDER PROGRESSING</div>` : ''}
           </div>`;
         });
         html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
