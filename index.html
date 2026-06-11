@@ -397,7 +397,7 @@
   <div class="header-eyebrow">PROGRAMME / PHASE 1</div>
   <div class="header-title">PPL<br><em>Training</em></div>
   <div class="header-sub">6-DAY SPLIT &nbsp;·&nbsp; DUMBBELL ONLY</div>
-  <div id="header-streak" style="font-size:9px;letter-spacing:3px;color:#e85d3a;margin-top:4px;margin-bottom:2px;min-height:14px"></div>
+  <div id="header-streak" style="position:absolute;top:52px;right:20px;text-align:right;color:#e85d3a;line-height:1.2"></div>
   <div class="phase-tabs">
     <button class="phase-tab active" onclick="setView('phase',0)" id="tab0">PHASE 1</button>
     <button class="phase-tab" onclick="setView('phase',1)" id="tab1">PHASE 2</button>
@@ -754,7 +754,7 @@ function renderStreakInHeader() {
   const el = document.getElementById('header-streak');
   if (!el) return;
   const streak = calcStreak();
-  el.textContent = streak >= 2 ? `— ${streak} DAY STREAK —` : '';
+  el.innerHTML = streak >= 2 ? `<span style="font-size:9px;letter-spacing:3px;font-family:'Fragment Mono',monospace">—</span> <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;letter-spacing:1px">${streak}</span> <span style="font-size:9px;letter-spacing:3px;font-family:'Fragment Mono',monospace">DAY STREAK —</span>` : '';
 }
 
 function renderPhase() {
