@@ -540,6 +540,7 @@
 <div id="app"></div>
 <div class="toast" id="toast">SESSION LOGGED</div>
 
+<script src="js/logic.js"></script>
 <script>
 const warmups = {
   PUSH: [
@@ -680,33 +681,6 @@ function getLastWeight(exerciseName) {
   }
   return null;
 }
-function parseRepRange(repsStr) {
-  const enDash = repsStr.match(/(\d+)[–\-](\d+)/);
-  if (enDash) return { min: parseInt(enDash[1]), max: parseInt(enDash[2]) };
-  const num = repsStr.match(/^(\d+)/);
-  const n = num ? parseInt(num[1]) : 10;
-  return { min: n, max: n };
-}
-
-function getOverloadRecommendation(exerciseName, repsStr) {
-  const { min, max } = parseRepRange(repsStr);
-  const sessions = getSessions().filter(s => s.reps && s.reps[exerciseName]);
-  if (sessions.length === 0) return null;
-
-  const last = sessions[sessions.length - 1].reps[exerciseName];
-  const belowMin = last.filter(r => r !== null && r < min).length;
-  if (belowMin >= 2) return { action: 'hold', label: 'HOLD — FOCUS ON FORM', color: '#3a7be8' };
-
-  const allAtMax = sets => sets.every(r => r !== null && r >= max);
-  if (allAtMax(last)) {
-    if (sessions.length >= 2 && allAtMax(sessions[sessions.length - 2].reps[exerciseName])) {
-      return { action: 'increase', label: '↑ ADD 2.5KG', color: '#3ab87a' };
-    }
-    return { action: 'increase', label: '↑ CONSIDER +2.5KG', color: '#b07a2a' };
-  }
-
-  return null;
-}
 function todayStr() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -718,62 +692,16 @@ function loggedDates() {
   return new Set(getSessions().map(s => s.date));
 }
 
-function calcStreak() {
-  const logged = loggedDates();
-  if (logged.size === 0) return 0;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Start from today if logged, otherwise yesterday
-  const startCursor = new Date(today);
-  if (!logged.has(dateStr(today))) {
-    startCursor.setDate(startCursor.getDate() - 1);
-  }
-
-  let streak = 0;
-  let weekGaps = 0;
-  let weekDays = 0;
-
-  const cursor = new Date(startCursor);
-
-  while (true) {
-    const ds = dateStr(cursor);
-
-    if (logged.has(ds)) {
-      streak++;
-    } else {
-      weekGaps++;
-      if (weekGaps > 1) break;
-    }
-
-    weekDays++;
-    if (weekDays === 7) {
-      weekGaps = 0;
-      weekDays = 0;
-    }
-
-    cursor.setDate(cursor.getDate() - 1);
-
-    const daysBack = Math.round((startCursor - cursor) / 86400000);
-    if (daysBack > 365) break;
-  }
-
-  return streak;
-}
 
 // --- Session actions ---
 function startSession(phaseIndex, dayIndex) {
   const day = phases[phaseIndex].days[dayIndex];
   const weights = {};
-  const reps = {};
-  const completedSets = {};
   day.exercises.forEach(ex => {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
-    reps[ex.name] = Array(parseInt(ex.sets)).fill(null);
-    completedSets[ex.name] = Array(parseInt(ex.sets)).fill(false);
   });
+  const { reps, completedSets } = initSessionReps(day.exercises);
   activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
   render();
 }
@@ -899,7 +827,7 @@ function completeSession() {
 
   const recommendations = [];
   day.exercises.forEach(ex => {
-    const rec = getOverloadRecommendation(ex.name, ex.reps);
+    const rec = getOverloadRecommendation(ex.name, ex.reps, getSessions);
     if (rec) recommendations.push({ name: ex.name, rec });
   });
 
@@ -983,7 +911,7 @@ function render() {
 function renderStreakInHeader() {
   const el = document.getElementById('header-streak');
   if (!el) return;
-  const streak = calcStreak();
+  const streak = calcStreak(loggedDates(), new Date());
   el.innerHTML = streak >= 2 ? `<span style="font-size:9px;letter-spacing:3px;font-family:'Fragment Mono',monospace">—</span> <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;letter-spacing:1px">${streak}</span> <span style="font-size:9px;letter-spacing:3px;font-family:'Fragment Mono',monospace">DAY STREAK —</span>` : '';
 }
 
@@ -1116,7 +1044,7 @@ function renderPhase() {
         </div>`;
         day.exercises.forEach(ex => {
           const last = getLastWeight(ex.name);
-          const rec = getOverloadRecommendation(ex.name, ex.reps);
+          const rec = getOverloadRecommendation(ex.name, ex.reps, getSessions);
           html += `<div class="exercise-item">
             <div class="exercise-name">${ex.name}</div>
             <div class="exercise-sets" style="color:${color}">${ex.sets}</div>
@@ -1294,12 +1222,7 @@ function startRetroSession(phaseIndex, dayIndex) {
     const last = getLastWeight(ex.name);
     weights[ex.name] = last !== null ? last : 5;
   });
-  const reps = {};
-  const completedSets = {};
-  day.exercises.forEach(ex => {
-    reps[ex.name] = Array(parseInt(ex.sets)).fill(null);
-    completedSets[ex.name] = Array(parseInt(ex.sets)).fill(false);
-  });
+  const { reps, completedSets } = initSessionReps(day.exercises);
   activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
   currentPhase = phaseIndex;
   openDay = dayIndex;
