@@ -676,6 +676,11 @@ function saveSessions(sessions) {
 function getLastWeight(exerciseName) {
   const sessions = getSessions();
   for (let i = sessions.length - 1; i >= 0; i--) {
+    const sw = sessions[i].setWeights && sessions[i].setWeights[exerciseName];
+    if (sw) {
+      const first = sw.find(w => w !== null);
+      if (first !== undefined) return first;
+    }
     const w = sessions[i].weights[exerciseName];
     if (w !== undefined) return w;
   }
@@ -702,7 +707,9 @@ function startSession(phaseIndex, dayIndex) {
     weights[ex.name] = last !== null ? last : 5;
   });
   const { reps, completedSets } = initSessionReps(day.exercises);
-  activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
+  const setWeights = {};
+  day.exercises.forEach(ex => { setWeights[ex.name] = Array(parseInt(ex.sets)).fill(null); });
+  activeSession = { phaseIndex, dayIndex, weights, setWeights, reps, completedSets };
   render();
 }
 
@@ -749,6 +756,9 @@ function completeSetRow(exerciseName, setIndex) {
     : min;
   activeSession.reps[exerciseName][setIndex] = repCount;
   activeSession.completedSets[exerciseName][setIndex] = true;
+  if (activeSession.setWeights && activeSession.setWeights[exerciseName]) {
+    activeSession.setWeights[exerciseName][setIndex] = activeSession.weights[exerciseName];
+  }
   const safeKey = exerciseName.replace(/[^a-z0-9]/gi, '_');
   const row = document.getElementById(`set-row-${safeKey}-${setIndex}`);
   if (row) {
@@ -760,9 +770,13 @@ function completeSetRow(exerciseName, setIndex) {
   if (allDone) {
     const block = document.getElementById(`ex-block-${safeKey}`);
     if (block) {
-      const weight = activeSession.weights[exerciseName];
+      const sw = activeSession.setWeights && activeSession.setWeights[exerciseName];
       const repsArr = activeSession.reps[exerciseName];
-      block.innerHTML = `<div class="ex-collapsed">${weight}kg · ${repsArr.join(' / ')}</div>`;
+      const allSameWeight = sw && sw.every(w => w === sw[0]);
+      const weightLabel = allSameWeight
+        ? `${sw[0]}kg · ${repsArr.join(' / ')}`
+        : repsArr.map((r, i) => `${sw && sw[i] != null ? sw[i] + 'kg' : ''}×${r}`).join(' / ');
+      block.innerHTML = `<div class="ex-collapsed">${weightLabel}</div>`;
     }
   }
   render();
@@ -821,6 +835,7 @@ function completeSession() {
     dayIndex: activeSession.dayIndex,
     type: day.type,
     weights: { ...activeSession.weights },
+    setWeights: activeSession.setWeights ? { ...activeSession.setWeights } : {},
     reps: activeSession.reps ? { ...activeSession.reps } : {}
   });
   saveSessions(sessions);
@@ -1170,9 +1185,14 @@ function renderHistory() {
         </div>
         <div class="session-entry-weights">`;
       Object.entries(s.weights).forEach(([name, kg]) => {
+        const sw = s.setWeights && s.setWeights[name];
+        const allSame = sw && sw.every(w => w === sw[0] && w !== null);
+        const weightVal = sw && !allSame
+          ? sw.filter(w => w !== null).map(w => `${w}kg`).join(' / ')
+          : `${kg}kg`;
         html += `<div class="session-weight-row">
           <span class="session-weight-name">${name}</span>
-          <span class="session-weight-val">${kg}kg</span>
+          <span class="session-weight-val">${weightVal}</span>
         </div>`;
       });
       html += `</div></div>`;
@@ -1231,7 +1251,9 @@ function startRetroSession(phaseIndex, dayIndex) {
     weights[ex.name] = last !== null ? last : 5;
   });
   const { reps, completedSets } = initSessionReps(day.exercises);
-  activeSession = { phaseIndex, dayIndex, weights, reps, completedSets };
+  const setWeights = {};
+  day.exercises.forEach(ex => { setWeights[ex.name] = Array(parseInt(ex.sets)).fill(null); });
+  activeSession = { phaseIndex, dayIndex, weights, setWeights, reps, completedSets };
   currentPhase = phaseIndex;
   openDay = dayIndex;
   currentView = 'phase';

@@ -13,7 +13,17 @@ function getOverloadRecommendation(exerciseName, repsStr, _getSessions) {
   const sessions = _getSessions().filter(s => s.reps && s.reps[exerciseName]);
   if (sessions.length === 0) return null;
 
-  const last = sessions[sessions.length - 1].reps[exerciseName];
+  const lastSession = sessions[sessions.length - 1];
+  const sw = lastSession.setWeights && lastSession.setWeights[exerciseName];
+  if (sw) {
+    for (let i = 1; i < sw.length; i++) {
+      if (sw[i] !== null && sw[i - 1] !== null && sw[i] < sw[i - 1]) {
+        return { action: 'hold', label: 'HOLD — DROPPED WEIGHT', color: '#3a7be8' };
+      }
+    }
+  }
+
+  const last = lastSession.reps[exerciseName];
   const belowMin = last.filter(r => r !== null && r < min).length;
   if (belowMin >= 2) return { action: 'hold', label: 'HOLD — FOCUS ON FORM', color: '#3a7be8' };
 

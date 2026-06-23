@@ -74,6 +74,14 @@ function session(exerciseName, repsArr) {
   return { reps: { [exerciseName]: repsArr }, weights: { [exerciseName]: 15 } };
 }
 
+function sessionWithSetWeights(exerciseName, repsArr, setWeightsArr) {
+  return {
+    reps: { [exerciseName]: repsArr },
+    weights: { [exerciseName]: setWeightsArr[setWeightsArr.length - 1] },
+    setWeights: { [exerciseName]: setWeightsArr },
+  };
+}
+
 test('getOverloadRecommendation: returns null with no session data', () => {
   const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions([]));
   assert.equal(rec, null);
@@ -144,6 +152,41 @@ test('getOverloadRecommendation: works for single fixed-rep exercise', () => {
   const sessions = [session('Calf Raise', [20, 20, 20])];
   const rec = getOverloadRecommendation('Calf Raise', '20', mockGetSessions(sessions));
   assert.equal(rec.action, 'increase');
+});
+
+test('getOverloadRecommendation: HOLD when weight dropped mid-session', () => {
+  // Started at 15kg, had to drop to 12.5kg for last 2 sets
+  const sessions = [sessionWithSetWeights('Bench Press', [10, 10, 10], [15, 12.5, 12.5])];
+  const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions(sessions));
+  assert.equal(rec.action, 'hold');
+  assert.ok(rec.label.includes('HOLD'), `Expected label to include HOLD, got: ${rec.label}`);
+});
+
+test('getOverloadRecommendation: HOLD when weight drops on last set only', () => {
+  const sessions = [sessionWithSetWeights('Bench Press', [12, 12, 10], [15, 15, 12.5])];
+  const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions(sessions));
+  assert.equal(rec.action, 'hold');
+});
+
+test('getOverloadRecommendation: normal reps logic when all sets same weight', () => {
+  // All at max reps and same weight — should suggest increase
+  const sessions = [sessionWithSetWeights('Bench Press', [12, 12, 12], [12.5, 12.5, 12.5])];
+  const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions(sessions));
+  assert.equal(rec.action, 'increase');
+});
+
+test('getOverloadRecommendation: normal reps logic for old sessions without setWeights', () => {
+  // Old session format — no setWeights field, should use reps as before
+  const sessions = [session('Bench Press', [12, 12, 12])];
+  const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions(sessions));
+  assert.equal(rec.action, 'increase');
+});
+
+test('getOverloadRecommendation: no HOLD when weight increases across sets', () => {
+  // Pyramid up — not a drop, normal logic applies
+  const sessions = [sessionWithSetWeights('Bench Press', [12, 11, 10], [10, 12.5, 15])];
+  const rec = getOverloadRecommendation('Bench Press', '10–12', mockGetSessions(sessions));
+  assert.notEqual(rec && rec.action, 'hold');
 });
 
 // ---------------------------------------------------------------------------
