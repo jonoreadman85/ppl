@@ -212,6 +212,14 @@ Volume increase. Sets increase from 3 to 4 on compounds. Flat press introduced (
 
 ---
 
+## Development Standards
+
+- **Always write tests** for any logic added to `js/logic.js`. Run `npm test` to confirm they pass before committing.
+- **Always verify your work** after implementation: open the app in a browser and manually test the changed feature. For UI changes, check the golden path and key edge cases.
+- Commit after each task, not at the end.
+
+---
+
 ## How to Request Changes
 
 Just describe what you want in plain English. Examples:
