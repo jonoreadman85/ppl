@@ -533,11 +533,12 @@
 <div class="header">
   <div class="header-eyebrow">PROGRAMME / PHASE 1</div>
   <div class="header-title">PPL<br><em>Training</em></div>
-  <div class="header-sub">6-DAY SPLIT &nbsp;·&nbsp; DUMBBELL ONLY</div>
+  <div class="header-sub" id="header-sub">6-DAY SPLIT &nbsp;·&nbsp; DUMBBELL ONLY</div>
   <div id="header-streak" style="position:absolute;top:52px;right:20px;text-align:right;color:#e85d3a;line-height:1.2"></div>
   <div class="phase-tabs">
     <button class="phase-tab active" onclick="setView('phase',0)" id="tab0">PHASE 1</button>
     <button class="phase-tab" onclick="setView('phase',1)" id="tab1">PHASE 2</button>
+    <button class="phase-tab" onclick="setView('phase',2)" id="tab2">PHASE 3</button>
     <button class="phase-tab" onclick="setView('history')" id="tabH">HISTORY</button>
   </div>
 </div>
@@ -699,7 +700,7 @@ for (let w = 2.5; w <= 40; w += 2.5) WEIGHTS.push(w);
 
 // --- State ---
 let currentView = 'phase'; // 'phase' | 'history'
-let currentPhase = 0;
+let currentPhase = parseInt(localStorage.getItem('ppl_phase') || '0');
 let openDay = null;
 let activeSession = null; // { phaseIndex, dayIndex, weights: { exerciseName: kg } }
 let retroDate = null; // null = use today, otherwise 'YYYY-MM-DD'
@@ -734,6 +735,9 @@ function todayStr() {
 }
 function dateStr(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function getTypeLabel(type) {
+  return type.replace('_', ' ');
 }
 function loggedDates() {
   return new Set(getSessions().map(s => s.date));
@@ -932,15 +936,21 @@ function setView(view, phaseIdx) {
   currentView = view;
   if (view === 'phase' && phaseIdx !== undefined) {
     currentPhase = phaseIdx;
+    localStorage.setItem('ppl_phase', phaseIdx);
     openDay = null;
   }
   document.getElementById('tab0').classList.toggle('active', view === 'phase' && currentPhase === 0);
   document.getElementById('tab1').classList.toggle('active', view === 'phase' && currentPhase === 1);
+  document.getElementById('tab2').classList.toggle('active', view === 'phase' && currentPhase === 2);
   document.getElementById('tabH').classList.toggle('active', view === 'history');
   const eyebrow = document.querySelector('.header-eyebrow');
   if (eyebrow) {
     if (view === 'history') eyebrow.textContent = 'PROGRAMME / HISTORY';
     else eyebrow.textContent = `PROGRAMME / PHASE ${currentPhase + 1}`;
+  }
+  const subLine = document.getElementById('header-sub');
+  if (subLine) {
+    subLine.textContent = currentPhase === 2 ? '4-DAY UPPER/LOWER · DUMBBELL ONLY' : '6-DAY SPLIT · DUMBBELL ONLY';
   }
   render();
 }
@@ -1011,7 +1021,7 @@ function renderPhase() {
       <div class="day-header-left">
         <div>
           <div class="day-label">${day.day.toUpperCase().replace(/(\d+)/, n => String(n).padStart(2,'0'))}</div>
-          <div class="day-type" style="color:${color}">${day.type}</div>
+          <div class="day-type" style="color:${color}">${getTypeLabel(day.type)}</div>
         </div>
         ${!isRest ? `<div class="day-meta">${day.exercises.length} exercises · ${phase.duration}${loggedToday ? ' · <span style="color:#3ab87a">LOGGED</span>' : ''}</div>` : ''}
       </div>
