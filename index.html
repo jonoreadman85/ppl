@@ -708,6 +708,7 @@ let restDuration = null; // null | 60 | 90
 let restStart = null;    // Date.now() when timer started
 let restInterval = null; // setInterval handle
 let installDismissed = false;
+let upperWarningDismissed = false;
 
 // --- localStorage helpers ---
 function getSessions() {
@@ -757,6 +758,22 @@ function startSession(phaseIndex, dayIndex) {
   day.exercises.forEach(ex => { setWeights[ex.name] = Array(parseInt(ex.sets)).fill(null); });
   activeSession = { phaseIndex, dayIndex, weights, setWeights, reps, completedSets };
   activeSession.startTime = Date.now();
+  render();
+}
+
+function isConsecutiveUpperWarning(phaseIndex, dayIndex) {
+  const day = phases[phaseIndex].days[dayIndex];
+  if (day.type !== 'UPPER_A' && day.type !== 'UPPER_B') return false;
+  const sessions = getSessions();
+  if (sessions.length === 0) return false;
+  const last = sessions[sessions.length - 1];
+  if (last.type !== 'UPPER_A' && last.type !== 'UPPER_B') return false;
+  const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return dateStr(d); })();
+  return last.date === todayStr() || last.date === yesterday;
+}
+
+function dismissUpperWarning() {
+  upperWarningDismissed = true;
   render();
 }
 
@@ -972,6 +989,7 @@ function setView(view, phaseIdx) {
 
 function toggleDay(i) {
   openDay = openDay === i ? null : i;
+  upperWarningDismissed = false;
   render();
 }
 
@@ -1176,9 +1194,19 @@ function renderPhase() {
           });
           html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
         }
-        html += `<div class="session-actions">
-          <button class="btn-start" onclick="startSession(${currentPhase}, ${i})">START SESSION</button>
-        </div>`;
+        if (!upperWarningDismissed && isConsecutiveUpperWarning(currentPhase, i)) {
+          html += `<div class="session-actions" style="flex-direction:column;gap:8px">
+            <div style="font-size:9px;letter-spacing:2px;color:#b07a2a;padding:4px 0">⚠ UPPER SESSION YESTERDAY — CONSIDER LOWER TODAY</div>
+            <div style="display:flex;gap:10px;width:100%">
+              <button class="btn-start" style="flex:1" onclick="startSession(${currentPhase}, ${i})">START ANYWAY</button>
+              <button class="btn-cancel" onclick="dismissUpperWarning()">DISMISS</button>
+            </div>
+          </div>`;
+        } else {
+          html += `<div class="session-actions">
+            <button class="btn-start" onclick="startSession(${currentPhase}, ${i})">START SESSION</button>
+          </div>`;
+        }
       }
 
       html += `</div>`; // day-body
