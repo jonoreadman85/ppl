@@ -310,3 +310,33 @@ test('formatDuration: exactly 3600 seconds returns "1h 00m"', () => {
 test('formatDuration: 3720 seconds returns "1h 02m"', () => {
   assert.equal(formatDuration(3720), '1h 02m');
 });
+
+// ---------------------------------------------------------------------------
+// getSupersetPartner
+// ---------------------------------------------------------------------------
+
+const supersetExercises = [
+  { name: 'Incline DB Press', sets: '3', reps: '8–10', superset: 1, supersetOrder: 1 },
+  { name: 'Bent-Over Row',    sets: '3', reps: '8–10', superset: 1, supersetOrder: 2 },
+  { name: 'Lateral Raise',   sets: '3', reps: '10–12', superset: 2, supersetOrder: 1 },
+  { name: 'Rear Delt Fly',   sets: '3', reps: '10–12', superset: 2, supersetOrder: 2 },
+  { name: 'Calf Raise',      sets: '3', reps: '15–20', superset: 3, supersetOrder: 1 },
+];
+
+const { getSupersetPartner } = require('../js/logic.js');
+
+test('getSupersetPartner: returns partner name when exercise is first in pair', () => {
+  assert.equal(getSupersetPartner(supersetExercises, 'Incline DB Press'), 'Bent-Over Row');
+});
+
+test('getSupersetPartner: returns null when exercise is second in pair', () => {
+  assert.equal(getSupersetPartner(supersetExercises, 'Bent-Over Row'), null);
+});
+
+test('getSupersetPartner: returns null for singleton (no supersetOrder 2 in group)', () => {
+  assert.equal(getSupersetPartner(supersetExercises, 'Calf Raise'), null);
+});
+
+test('getSupersetPartner: returns null for unknown exercise name', () => {
+  assert.equal(getSupersetPartner(supersetExercises, 'Unknown Exercise'), null);
+});

@@ -103,6 +103,13 @@ function formatDuration(seconds) {
   return `${h}h ${m}m`;
 }
 
+function getSupersetPartner(exercises, exerciseName) {
+  const ex = exercises.find(e => e.name === exerciseName);
+  if (!ex || !ex.superset || ex.supersetOrder !== 1) return null;
+  const partner = exercises.find(e => e.superset === ex.superset && e.supersetOrder === 2);
+  return partner ? partner.name : null;
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration };
+  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration, getSupersetPartner };
 }
