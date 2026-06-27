@@ -267,6 +267,7 @@
   }
   .session-entry-date { font-size: 10px; color: #888; }
   .session-entry-type { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .session-entry-duration { font-size: 10px; color: #888; }
   .session-entry-weights { padding: 8px 14px; }
   .session-weight-row {
     display: flex; justify-content: space-between; align-items: center;
@@ -1183,10 +1184,14 @@ function renderHistory() {
     recent.forEach(s => {
       const color = typeColors[s.type] || '#888';
       const dateLabel = new Date(s.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+      const durationHtml = s.duration != null
+        ? `<div class="session-entry-duration">${formatDuration(s.duration)}</div>`
+        : '';
       html += `<div class="session-entry">
         <div class="session-entry-header">
           <div class="session-entry-date">${dateLabel}</div>
           <div class="session-entry-type" style="color:${color}">${s.type}</div>
+          ${durationHtml}
         </div>
         <div class="session-entry-weights">`;
       Object.entries(s.weights).forEach(([name, kg]) => {
