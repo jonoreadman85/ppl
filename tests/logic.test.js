@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration } = require('../js/logic.js');
+const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration, getSupersetPartner } = require('../js/logic.js');
 
 // ---------------------------------------------------------------------------
 // parseRepRange
@@ -322,8 +322,6 @@ const supersetExercises = [
   { name: 'Rear Delt Fly',   sets: '3', reps: '10–12', superset: 2, supersetOrder: 2 },
   { name: 'Calf Raise',      sets: '3', reps: '15–20', superset: 3, supersetOrder: 1 },
 ];
-
-const { getSupersetPartner } = require('../js/logic.js');
 
 test('getSupersetPartner: returns partner name when exercise is first in pair', () => {
   assert.equal(getSupersetPartner(supersetExercises, 'Incline DB Press'), 'Bent-Over Row');
