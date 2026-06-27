@@ -710,6 +710,7 @@ function startSession(phaseIndex, dayIndex) {
   const setWeights = {};
   day.exercises.forEach(ex => { setWeights[ex.name] = Array(parseInt(ex.sets)).fill(null); });
   activeSession = { phaseIndex, dayIndex, weights, setWeights, reps, completedSets };
+  activeSession.startTime = Date.now();
   render();
 }
 
