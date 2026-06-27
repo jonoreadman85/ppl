@@ -86,6 +86,10 @@
   .day-card.type-PUSH { border-left-color: #e85d3a; }
   .day-card.type-PULL { border-left-color: #3a7be8; }
   .day-card.type-LEGS { border-left-color: #3ab87a; }
+  .day-card.type-UPPER_A { border-left-color: #9b59b6; }
+  .day-card.type-UPPER_B { border-left-color: #9b59b6; }
+  .day-card.type-LOWER_A { border-left-color: #3ab87a; }
+  .day-card.type-LOWER_B { border-left-color: #3ab87a; }
   .day-card.rest { opacity: 0.2; cursor: default; border-left-color: transparent; }
   .day-card.active-session { border-top-color: rgba(232,230,224,0.15); border-right-color: rgba(232,230,224,0.15); border-bottom-color: rgba(232,230,224,0.15); }
 
@@ -648,10 +652,47 @@ const phases = [
       { day: "Day 7", type: "REST", exercises: [] },
     ]
   }
+  ,
+  {
+    label: "Phase 3", weeks: "Week 7+", duration: "45 min",
+    note: "4-day Upper/Lower split. Antagonist supersets. 3 supersets × 3 sets. 60s rest after each pair. No warm-up — handle independently.",
+    days: [
+      { day: "Upper A", type: "UPPER_A", exercises: [
+        { name: "Incline DB Press",  sets: "3", reps: "8–10",  cue: "Primary mover. Controlled descent. Protect right shoulder.", superset: 1, supersetOrder: 1 },
+        { name: "Bent-Over Row",     sets: "3", reps: "8–10",  cue: "Chest up. Pull to hip. Squeeze at top.", superset: 1, supersetOrder: 2 },
+        { name: "Lateral Raise",     sets: "3", reps: "10–12", cue: "Lead with elbows. Stop at shoulder height.", superset: 2, supersetOrder: 1 },
+        { name: "Rear Delt Fly",     sets: "3", reps: "10–12", cue: "Hinge forward. Arms wide. Shoulder health.", superset: 2, supersetOrder: 2 },
+        { name: "Bicep Curl",        sets: "3", reps: "10–12", cue: "No swinging. Full supination at top.", superset: 3, supersetOrder: 1 },
+        { name: "Tricep Extension",  sets: "3", reps: "10–12", cue: "Long head emphasis. Monitor shoulder.", superset: 3, supersetOrder: 2 },
+      ]},
+      { day: "Upper B", type: "UPPER_B", exercises: [
+        { name: "Overhead Press",   sets: "3", reps: "10–12", cue: "Assess shoulder comfort each session.", superset: 1, supersetOrder: 1 },
+        { name: "Rear Delt Fly",    sets: "3", reps: "10–12", cue: "Shoulder health. Non-negotiable.", superset: 1, supersetOrder: 2 },
+        { name: "Lateral Raise",    sets: "3", reps: "10–12", cue: "Lead with elbows. Stop at shoulder height.", superset: 2, supersetOrder: 1 },
+        { name: "Hammer Curl",      sets: "3", reps: "10–12", cue: "Neutral grip. Builds brachialis.", superset: 2, supersetOrder: 2 },
+        { name: "Bent-Over Row",    sets: "3", reps: "8–10",  cue: "Chest up. Pull to hip. Squeeze at top.", superset: 3, supersetOrder: 1 },
+        { name: "Tricep Kickback",  sets: "3", reps: "10–12", cue: "Upper arm parallel to floor. Full extension.", superset: 3, supersetOrder: 2 },
+      ]},
+      { day: "Lower A", type: "LOWER_A", exercises: [
+        { name: "Goblet Squat",      sets: "3", reps: "8–10",  cue: "Hold one dumbbell at chest. Knees track toes. Full depth.", superset: 1, supersetOrder: 1 },
+        { name: "Romanian Deadlift", sets: "3", reps: "8–10",  cue: "Hinge at hips. Soft knees. Feel hamstring stretch.", superset: 1, supersetOrder: 2 },
+        { name: "Walking Lunge",     sets: "3", reps: "10–12", cue: "Step forward. Knee just above floor. Drive through front heel.", superset: 2, supersetOrder: 1 },
+        { name: "Sumo Squat",        sets: "3", reps: "10–12", cue: "Wide stance. Toes out. Targets inner quad and adductors.", superset: 2, supersetOrder: 2 },
+        { name: "Calf Raise",        sets: "3", reps: "15–20", cue: "Full range. Pause at top. Use a step if available.", superset: 3, supersetOrder: 1 },
+      ]},
+      { day: "Lower B", type: "LOWER_B", exercises: [
+        { name: "Romanian Deadlift", sets: "3", reps: "8–10",  cue: "Hinge at hips. Posterior chain anchor.", superset: 1, supersetOrder: 1 },
+        { name: "Hip Thrust",        sets: "3", reps: "8–10",  cue: "Drive through heels. Squeeze glutes at top.", superset: 1, supersetOrder: 2 },
+        { name: "Single-Leg RDL",    sets: "3", reps: "10–12", cue: "Hinge on one leg. Keep hips square.", superset: 2, supersetOrder: 1 },
+        { name: "Reverse Lunge",     sets: "3", reps: "10–12", cue: "Step back. Knee just above floor. Drive through front heel.", superset: 2, supersetOrder: 2 },
+        { name: "Calf Raise",        sets: "3", reps: "15–20", cue: "Full range. Pause at top. Use a step if available.", superset: 3, supersetOrder: 1 },
+      ]},
+    ]
+  }
 ];
 
 
-const typeColors = { PUSH: "#e85d3a", PULL: "#3a7be8", LEGS: "#3ab87a", REST: "#555" };
+const typeColors = { PUSH: "#e85d3a", PULL: "#3a7be8", LEGS: "#3ab87a", REST: "#555", UPPER_A: "#9b59b6", UPPER_B: "#9b59b6", LOWER_A: "#3ab87a", LOWER_B: "#3ab87a" };
 
 const WEIGHTS = [];
 for (let w = 2.5; w <= 40; w += 2.5) WEIGHTS.push(w);
