@@ -1122,19 +1122,45 @@ function renderPhase() {
         html += `<div class="sets-header" style="border-top-color:${color}22">
           <span>EXERCISE</span><span>SETS</span><span>REPS</span>
         </div>`;
-        day.exercises.forEach(ex => {
-          const last = getLastWeight(ex.name);
-          const rec = getOverloadRecommendation(ex.name, ex.reps, getSessions);
-          html += `<div class="exercise-item">
-            <div class="exercise-name">${ex.name}</div>
-            <div class="exercise-sets" style="color:${color}">${ex.sets}</div>
-            <div class="exercise-reps">${ex.reps}</div>
-            ${ex.cue ? `<div class="exercise-cue">${ex.cue}</div>` : ''}
-            ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
-            ${rec ? `<div class="exercise-cue" style="color:${rec.color};margin-top:2px">${rec.label}</div>` : ''}
-          </div>`;
-        });
-        html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
+
+        const isPhase3Day = day.exercises.some(ex => ex.superset !== undefined);
+        if (isPhase3Day) {
+          const groups = {};
+          day.exercises.forEach(ex => {
+            if (!groups[ex.superset]) groups[ex.superset] = [];
+            groups[ex.superset].push(ex);
+          });
+          Object.keys(groups).sort().forEach(supersetNum => {
+            html += `<div style="padding:6px 16px 3px;font-size:8px;letter-spacing:3px;color:#3a3a40;border-top:1px solid rgba(255,255,255,0.03)">SUPERSET ${supersetNum}</div>`;
+            groups[supersetNum].forEach(ex => {
+              const last = getLastWeight(ex.name);
+              const rec = getOverloadRecommendation(ex.name, ex.reps, getSessions);
+              html += `<div class="exercise-item">
+                <div class="exercise-name">${ex.name}</div>
+                <div class="exercise-sets" style="color:${color}">${ex.sets}</div>
+                <div class="exercise-reps">${ex.reps}</div>
+                ${ex.cue ? `<div class="exercise-cue">${ex.cue}</div>` : ''}
+                ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
+                ${rec ? `<div class="exercise-cue" style="color:${rec.color};margin-top:2px">${rec.label}</div>` : ''}
+              </div>`;
+            });
+          });
+          html += `<div class="rest-reminder">— REST 60 SEC AFTER EACH SUPERSET PAIR</div>`;
+        } else {
+          day.exercises.forEach(ex => {
+            const last = getLastWeight(ex.name);
+            const rec = getOverloadRecommendation(ex.name, ex.reps, getSessions);
+            html += `<div class="exercise-item">
+              <div class="exercise-name">${ex.name}</div>
+              <div class="exercise-sets" style="color:${color}">${ex.sets}</div>
+              <div class="exercise-reps">${ex.reps}</div>
+              ${ex.cue ? `<div class="exercise-cue">${ex.cue}</div>` : ''}
+              ${last !== null ? `<div class="exercise-cue" style="color:#555;margin-top:2px">Last logged: <span style="color:#888">${last}kg</span></div>` : ''}
+              ${rec ? `<div class="exercise-cue" style="color:${rec.color};margin-top:2px">${rec.label}</div>` : ''}
+            </div>`;
+          });
+          html += `<div class="rest-reminder">— REST 60–90 SEC BETWEEN SETS</div>`;
+        }
         html += `<div class="session-actions">
           <button class="btn-start" onclick="startSession(${currentPhase}, ${i})">START SESSION</button>
         </div>`;
