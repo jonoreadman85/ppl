@@ -95,6 +95,14 @@ function findTimerExerciseIndex(exercises, completedSets) {
   return lastIdx;
 }
 
+function formatDuration(seconds) {
+  if (seconds < 60) return '< 1 min';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min`;
+  const h = Math.floor(seconds / 3600);
+  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  return `${h}h ${m}m`;
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex };
+  module.exports = { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration };
 }

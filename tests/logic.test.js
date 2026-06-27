@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex } = require('../js/logic.js');
+const { parseRepRange, getOverloadRecommendation, calcStreak, initSessionReps, findTimerExerciseIndex, formatDuration } = require('../js/logic.js');
 
 // ---------------------------------------------------------------------------
 // parseRepRange
@@ -277,4 +277,36 @@ test('findTimerExerciseIndex: moves to third exercise once second is started', (
 test('findTimerExerciseIndex: last exercise index when all exercises fully done', () => {
   const completedSets = { Press: [true, true, true], Row: [true, true, true], Curl: [true, true, true] };
   assert.equal(findTimerExerciseIndex(exercises, completedSets), 2);
+});
+
+// ---------------------------------------------------------------------------
+// formatDuration
+// ---------------------------------------------------------------------------
+
+test('formatDuration: 0 seconds returns "< 1 min"', () => {
+  assert.equal(formatDuration(0), '< 1 min');
+});
+
+test('formatDuration: 45 seconds returns "< 1 min"', () => {
+  assert.equal(formatDuration(45), '< 1 min');
+});
+
+test('formatDuration: exactly 60 seconds returns "1 min"', () => {
+  assert.equal(formatDuration(60), '1 min');
+});
+
+test('formatDuration: 2820 seconds returns "47 min"', () => {
+  assert.equal(formatDuration(2820), '47 min');
+});
+
+test('formatDuration: 3599 seconds returns "59 min"', () => {
+  assert.equal(formatDuration(3599), '59 min');
+});
+
+test('formatDuration: exactly 3600 seconds returns "1h 00m"', () => {
+  assert.equal(formatDuration(3600), '1h 00m');
+});
+
+test('formatDuration: 3720 seconds returns "1h 02m"', () => {
+  assert.equal(formatDuration(3720), '1h 02m');
 });
