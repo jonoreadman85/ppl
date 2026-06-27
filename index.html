@@ -830,6 +830,9 @@ function completeSession() {
   if (!activeSession) return;
   const sessions = getSessions();
   const day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
+  const duration = (!retroDate && activeSession.startTime)
+    ? Math.round((Date.now() - activeSession.startTime) / 1000)
+    : undefined;
   sessions.push({
     date: retroDate || todayStr(),
     phase: activeSession.phaseIndex,
@@ -837,7 +840,8 @@ function completeSession() {
     type: day.type,
     weights: { ...activeSession.weights },
     setWeights: activeSession.setWeights ? { ...activeSession.setWeights } : {},
-    reps: activeSession.reps ? { ...activeSession.reps } : {}
+    reps: activeSession.reps ? { ...activeSession.reps } : {},
+    duration
   });
   saveSessions(sessions);
   cancelRestTimer();
