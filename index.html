@@ -1080,6 +1080,10 @@ function renderPhase() {
         if (loggedToday) {
           html += `<div class="session-complete-banner">Session already logged today.</div>`;
         }
+        const upperBSessionCount = getSessions().filter(s => s.type === 'UPPER_B').length;
+        if (day.type === 'UPPER_B' && upperBSessionCount < 2) {
+          html += `<div style="margin:10px 16px 0;padding:10px 12px;border-left:2px solid #b07a2a;background:rgba(176,122,42,0.05);font-size:10px;color:#b07a2a;letter-spacing:0.5px;line-height:1.7">SHOULDER CHECK — Assess comfort on Overhead Press before increasing load</div>`;
+        }
         const timerExIdx = findTimerExerciseIndex(day.exercises, activeSession.completedSets);
         const timerInner = restDuration && restStart
           ? `<div class="rest-timer-countdown" onclick="cancelRestTimer()">${(() => { const r = Math.max(0, restDuration - Math.floor((Date.now()-restStart)/1000)); return Math.floor(r/60)+':'+String(r%60).padStart(2,'0'); })()}</div><div class="rest-timer-bar"><div class="rest-timer-fill" style="width:${Math.max(0,(restDuration-Math.floor((Date.now()-restStart)/1000))/restDuration)*100}%"></div></div>`
