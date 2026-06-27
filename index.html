@@ -827,7 +827,22 @@ function completeSetRow(exerciseName, setIndex) {
     }
   }
   render();
-  startRestTimer(90);
+
+  const _day = phases[activeSession.phaseIndex].days[activeSession.dayIndex];
+  const _isPhase3 = activeSession.phaseIndex === 2;
+
+  if (_isPhase3) {
+    const partner = getSupersetPartner(_day.exercises, exerciseName);
+    if (partner) {
+      cancelRestTimer();
+      const timerEl = document.getElementById('rest-timer-display');
+      if (timerEl) timerEl.innerHTML = `<div style="font-family:'Fragment Mono',monospace;font-size:10px;letter-spacing:3px;color:#9b59b6;padding:14px 0;text-align:center;width:100%">→ ${partner.toUpperCase()}</div>`;
+    } else {
+      startRestTimer(60);
+    }
+  } else {
+    startRestTimer(90);
+  }
 }
 
 function startRestTimer(seconds) {
